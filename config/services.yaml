@@ -20,9 +20,36 @@ services:
 
     # controllers are imported separately to make sure services can be injected
     # as action arguments even if you don't extend any base controller class
-    Candydate\Controller\:
-        resource: '../src/Controller'
+    Candydate\Controller\OAuth\:
+      resource: '../src/Controller/OAuth'
+      tags: ['controller.service_arguments']
+
+    Candydate\Controller\Rest\:
+      resource: '../src/Controller/Rest'
+      tags: ['controller.service_arguments']
+
+    Candydate\Controller\Web\:
+      resource: '../src/Controller/Web'
         tags: ['controller.service_arguments']
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    Candydate\DataFixtures\UserData:
+      calls:
+        - [setContainer, ['@service_container']]
+      #        - [load, ['@fos_oauth_server.entity_manager']]
+      tags:
+        - { name: doctrine.fixture.orm }
+  #  <service id="fos_oauth_server.security.authentication.listener" class="%fos_oauth_server.security.authentication.listener.class%" public="false">
+  #  <argument type="service" id="security.token_storage"/>
+  #  <argument type="service" id="security.authentication.manager" />
+  #  <argument type="service" id="fos_oauth_server.server" />
+  #  </service>
+    fos_oauth_server.security.authentication.listener:
+      class: "%fos_oauth_server.security.authentication.listener.class%"
+      public: false
+      arguments:
+        - {type: service , id: security.token_storage}
+        - {type: service , id: security.authentication.manager}
+        - {type: service , id: fos_oauth_server.server}

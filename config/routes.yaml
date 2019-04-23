@@ -1,3 +1,19 @@
 #index:
 #    path: /
 #    controller: App\Controller\DefaultController::index
+fos_oauth_server_token:
+  resource: "@FOSOAuthServerBundle/Resources/config/routing/token.xml"
+
+fos_oauth_server_authorize:
+  resource: "@FOSOAuthServerBundle/Resources/config/routing/authorize.xml"
+#
+#oauth_client:
+#    path: /oauth/v2/client
+#    methods: [POST]
+#    controller: Candydate\Controller\Rest\OAuthController::createClientAction
+
+test:
+  #    path: /api/test
+  type: rest
+  resource: Candydate\Controller\Rest\TestController
+  prefix: /api

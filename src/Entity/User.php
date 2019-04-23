@@ -2,18 +2,52 @@
 
 namespace Candydate\Entity;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use FOS\UserBundle\Model\User as BaseUser;
 use Candydate\Entity\Language as CandydateLanguage;
 use Gedmo\SoftDeleteable\Traits\SoftDeleteable;
 use Gedmo\Timestampable\Traits\Timestampable;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use JMS\Serializer\Annotation as Serializer;
+
+/*
+* @ORM\AttributeOverrides({
+ *     @ORM\AttributeOverride(name="roles",
+ *          column=@ORM\Column(
+ *              name     = "c_roles",
+ *              type     = "simple_array"
+    *          )
+ *      )
+ * })
+*/
 
 /**
+ * @ORM\Table(name="users", indexes={
+ *     @ORM\Index(name="search_idx_username", columns={"username"}),
+ *     @ORM\Index(name="search_idx_email", columns={"email"}),
+ * })
  * @ORM\Entity(repositoryClass="Candydate\Repository\UserRepository")
+ * @UniqueEntity(fields={"email"}, message="EMAIL_IS_ALREADY_IN_USE")
+ * @UniqueEntity(fields={"username"}, message="USERNAME_IS_ALREADY_IN_USE")
  */
-class User
+class User extends BaseUser
 {
     use Timestampable, SoftDeleteable;
+
+    public const ROLE_SUPER_ADMIN = 'ROLE_SUPER_ADMIN';
+    public const ROLE_ADMIN = 'ROLE_ADMIN';
+    public const ROLE_USER = 'ROLE_USER';
+
+    /**
+     * To validate supported roles
+     *
+     * @var array
+     */
+    static public $ROLES_SUPPORTED = [
+        self::ROLE_SUPER_ADMIN => self::ROLE_SUPER_ADMIN,
+        self::ROLE_ADMIN => self::ROLE_ADMIN,
+        self::ROLE_USER => self::ROLE_USER,
+    ];
 
     /**
      * @var int
@@ -21,7 +55,7 @@ class User
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    protected $id;
 
     /**
      * @var bool
@@ -31,33 +65,9 @@ class User
 
     /**
      * @var string
-     * @ORM\Column(name="fullname",type="boolean", nullable=false)
+     * @ORM\Column(name="fullname",type="string", nullable=true)
      */
     private $fullName;
-
-    /**
-     * @var string
-     * @ORM\Column(name="username", type="string", nullable=false)
-     */
-    private $userName;
-
-    /**
-     * @var string
-     * @ORM\Column(name="email", type="string", nullable=false)
-     */
-    private $email;
-
-    /**
-     * @var string
-     * @ORM\Column(type="string", nullable=false)
-     */
-    private $password;
-
-    /**
-     * @var string
-     * @ORM\Column(type="string", nullable=false)
-     */
-    private $salt;
 
     /**
      * @var bool
@@ -66,44 +76,11 @@ class User
     private $verified;
 
     /**
-     * @var string
-     * @ORM\Column(name="verification_link",type="string", nullable=false)
-     */
-    private $verificationLink;
-
-    /**
      * @var CandydateLanguage|null
      * @ORM\ManyToOne(targetEntity="Candydate\Entity\Language", inversedBy="users")
      * @ORM\JoinColumn(name="language_id", referencedColumnName="id")
      */
     private $language;
-
-    /**
-     * @var string[]
-     * @ORM\Column(type="json_array", nullable=false)
-     */
-    private $roles;
-
-    public function __construct()
-    {
-        $this->roles = new ArrayCollection();
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    /**
-     * @param int $id
-     */
-    public function setId(int $id): void
-    {
-        $this->id = $id;
-    }
 
     /**
      * @return bool
@@ -131,74 +108,13 @@ class User
 
     /**
      * @param string $fullName
+     * @return User
      */
-    public function setFullName(string $fullName): void
+    public function setFullName(string $fullName): self
     {
         $this->fullName = $fullName;
-    }
 
-    /**
-     * @return string
-     */
-    public function getUserName(): string
-    {
-        return $this->userName;
-    }
-
-    /**
-     * @param string $userName
-     */
-    public function setUserName(string $userName): void
-    {
-        $this->userName = $userName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getEmail(): string
-    {
-        return $this->email;
-    }
-
-    /**
-     * @param string $email
-     */
-    public function setEmail(string $email): void
-    {
-        $this->email = $email;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPassword(): string
-    {
-        return $this->password;
-    }
-
-    /**
-     * @param string $password
-     */
-    public function setPassword(string $password): void
-    {
-        $this->password = $password;
-    }
-
-    /**
-     * @return string
-     */
-    public function getSalt(): string
-    {
-        return $this->salt;
-    }
-
-    /**
-     * @param string $salt
-     */
-    public function setSalt(string $salt): void
-    {
-        $this->salt = $salt;
+        return $this;
     }
 
     /**
@@ -218,22 +134,6 @@ class User
     }
 
     /**
-     * @return string
-     */
-    public function getVerificationLink(): string
-    {
-        return $this->verificationLink;
-    }
-
-    /**
-     * @param string $verificationLink
-     */
-    public function setVerificationLink(string $verificationLink): void
-    {
-        $this->verificationLink = $verificationLink;
-    }
-
-    /**
      * @return Language|null
      */
     public function getLanguage(): ?Language
@@ -250,18 +150,19 @@ class User
     }
 
     /**
-     * @return string[]
+     * {@inheritdoc}
      */
-    public function getRoles(): array
+    public function getRoles()
     {
-        return $this->roles;
-    }
+        $roles = $this->unserialize($this->roles);
 
-    /**
-     * @param string[] $roles
-     */
-    public function setRoles(array $roles): void
-    {
-        $this->roles = $roles;
+        foreach ($this->getGroups() as $group) {
+            $roles = array_merge($roles, $group->getRoles());
+        }
+
+        // we need to make sure to have at least one role
+        $roles[] = static::ROLE_DEFAULT;
+
+        return array_unique($roles);
     }
 }

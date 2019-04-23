@@ -1,9 +1,12 @@
 fos_oauth_server:
   db_driver: orm
-  client_class:        FOS\OAuthServerBundle\Entity\Client
-  access_token_class:  FOS\OAuthServerBundle\Entity\AccessToken
-  refresh_token_class: FOS\OAuthServerBundle\Entity\RefreshToken
-  auth_code_class:     FOS\OAuthServerBundle\Entity\AuthCode
+  client_class:        Candydate\Entity\Client
+  access_token_class:  Candydate\Entity\AccessToken
+  refresh_token_class: Candydate\Entity\RefreshToken
+  auth_code_class:     Candydate\Entity\AuthCode
   service:
     user_provider: fos_user.user_provider.username
-#    user_provider: App\Provider\UserProvider
+    options:
+      access_token_lifetime: 86400
+      refresh_token_lifetime: 1209600
+      auth_code_lifetime: 30

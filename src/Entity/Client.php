@@ -22,4 +22,12 @@ class Client extends BaseClient
     {
         parent::__construct();
     }
+
+    /**
+     * @param int $id
+     */
+    public function setId(int $id): void
+    {
+        $this->id = $id;
+    }
 }
