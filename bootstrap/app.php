@@ -1,7 +1,8 @@
 <?php
 
-use Dusterio\LumenPassport\LumenPassport;
-use Laravel\Passport\Http\Middleware\CheckClientCredentials;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Contracts\Mail\Mailer;
+use Illuminate\Mail\MailServiceProvider;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -24,11 +25,12 @@ $app = new Laravel\Lumen\Application(
     dirname(__DIR__)
 );
 
-$app->withFacades();
+$app->withFacades(true, [Notification::class => 'Notification']);
 $app->withEloquent();
 $app->configure('auth');
 $app->configure('database');
-
+$app->configure('services');
+$app->configure('mail');
 
 /*
 |--------------------------------------------------------------------------
@@ -83,14 +85,19 @@ $app->routeMiddleware([
 |
 */
 
-// $app->register(App\Providers\AppServiceProvider::class);
+$app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
-// $app->register(App\Providers\EventServiceProvider::class);
+$app->register(App\Providers\EventServiceProvider::class);
+$app->register(MailServiceProvider::class);
+$app->register(Laravel\Passport\PassportServiceProvider::class);
+$app->register(Dusterio\LumenPassport\PassportServiceProvider::class);
+$app->register(Illuminate\Notifications\NotificationServiceProvider::class);
+
+$app->alias('mailer', Mailer::class);
+
 if ($app->environment() !== 'production') {
     $app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
 }
-$app->register(Laravel\Passport\PassportServiceProvider::class);
-$app->register(Dusterio\LumenPassport\PassportServiceProvider::class);
 /*
 |--------------------------------------------------------------------------
 | Load The Application Routes

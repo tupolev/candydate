@@ -16,14 +16,16 @@ $router->get('/', static function () use ($router) {
     return $router->app->version();
 });
 
-//Auth
-$router->get('/api/v1/test', ['uses' => '\App\Http\Controllers\TestController@index', 'middleware' => 'auth:api']);
-
 //User
 $router->get('/api/v1/user', ['uses' => '\App\Http\Controllers\UserController@me', 'middleware' => 'auth:api']);
-$router->put('/api/v1/user', ['uses' => '\App\Http\Controllers\UserController@create', 'middleware' => 'auth:api']);
+$router->put('/api/v1/user', ['uses' => '\App\Http\Controllers\UserController@create']);
 $router->post('/api/v1/user', ['uses' => '\App\Http\Controllers\UserController@edit', 'middleware' => 'auth:api']);
 
+//User email verification
+$router->get('/email-verification/{username}/{verification_hash}', [
+    'as' => 'emailVerification',
+    'uses' => '\App\Http\Controllers\UserController@verify'
+]);
 
 //JobProcess
 

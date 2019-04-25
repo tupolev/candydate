@@ -2,15 +2,17 @@
 
 namespace App;
 
+use App\Notifications\NewUserRegisteredNotification;
 use Illuminate\Auth\Authenticatable;
 use Laravel\Lumen\Auth\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Laravel\Passport\HasApiTokens;
+use Illuminate\Notifications\Notifiable;
 
 class User extends ScopeAwareModel implements AuthenticatableContract, AuthorizableContract
 {
-    use Authenticatable, Authorizable, HasApiTokens;
+    use Authenticatable, Authorizable, HasApiTokens, Notifiable;
 
     public const TABLE_NAME = 'users';
     const CREATED_AT = 'created_at';
@@ -46,9 +48,7 @@ class User extends ScopeAwareModel implements AuthenticatableContract, Authoriza
      *
      * @var array
      */
-    protected $fillable = [
-        'name', 'email', 'fullname', 'password', 'language_id'
-    ];
+    protected $fillable = [];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -58,6 +58,39 @@ class User extends ScopeAwareModel implements AuthenticatableContract, Authoriza
     protected $hidden = [
         'password', 'salt', 'verification_link', 'role_id', 'created_at', 'updated_at', 'deleted_at'
     ];
+
+    public function __construct(array $attributes = [])
+    {
+        $this->fillable(array_merge(static::$publicFields, static::$privateFields));
+        parent::__construct($attributes);
+    }
+
+    public static function registerUser(array $userDataFromRequest): self
+    {
+        $user = new self($userDataFromRequest);
+        $user->role_id = Role::query()->where(['name' => Role::ROLE_USER])->firstOrFail(['id'])->getAttributeValue('id');
+        $user->language_id = Language::query()->where(['id' => $userDataFromRequest['language_id']])->firstOrFail(['id'])->getAttributeValue('id');
+        $user->generateRandomSalt();
+        $user->generateRandomVerificationLink();
+        $user->setCreatedAt(new \DateTime());
+        $user->verified = false;
+        $user->password = $user->encodePassword($userDataFromRequest['password'], $user->salt);
+        $user->save();
+
+        $user->notify(new NewUserRegisteredNotification($user));
+
+        return $user;
+    }
+
+    public static function completeRegistration(string $username, string $verificationHash)
+    {
+        $user = User::query()->where(['username' => $username, 'verification_link' => $verificationHash])->firstOrFail();
+        $user->verified = true;
+        $user->active = true;
+        $user->setUpdatedAt(new \DateTime());
+
+        return $user->save();
+    }
 
     public function role()
     {
@@ -83,8 +116,28 @@ class User extends ScopeAwareModel implements AuthenticatableContract, Authoriza
         return $storedPasswordHash === $computedHashedPassword;
     }
 
-    public function encodePassword(string $password, string $salt, string $algorithm = self::HASH_ALGORITHM_SHA512): string
+    private function encodePassword(string $password, string $salt, string $algorithm = self::HASH_ALGORITHM_SHA512): string
     {
         return hash($algorithm, trim($password) . $salt);
+    }
+
+    private function generateRandomSalt(): void
+    {
+        $this->salt = substr(static::generateRandomHash(), random_int(0, 5), 10);
+    }
+
+    private function generateRandomVerificationLink(): void
+    {
+        $this->verification_link = substr(static::generateRandomHash(), random_int(0, 5), 30);
+    }
+
+    private static function generateRandomHash(): string
+    {
+        return hash(self::HASH_ALGORITHM_SHA512, strftime(DATE_ATOM, time()));
+    }
+
+    public function getEmailTag(): string
+    {
+        return sprintf('%s<%s>', $this->fullname, $this->email);
     }
 }
