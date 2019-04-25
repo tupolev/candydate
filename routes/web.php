@@ -28,5 +28,11 @@ $router->get('/email-verification/{username}/{verification_hash}', [
 ]);
 
 //JobProcess
+$router->get('/api/v1/process', ['uses' => '\App\Http\Controllers\JobProcessController@listJobProcesses', 'middleware' => 'auth:api']);
+$router->put('/api/v1/process', ['uses' => '\App\Http\Controllers\JobProcessController@createJobProcess', 'middleware' => 'auth:api']);
+$router->get('/api/v1/process/{id}', ['uses' => '\App\Http\Controllers\JobProcessController@viewJobProcess', 'middleware' => 'auth:api']);
+$router->post('/api/v1/process/{id}', ['uses' => '\App\Http\Controllers\JobProcessController@editJobProcess', 'middleware' => 'auth:api']);
+$router->delete('/api/v1/process/{id}', ['uses' => '\App\Http\Controllers\JobProcessController@deleteJobProcess', 'middleware' => 'auth:api']);
+
 
 //Contacts
