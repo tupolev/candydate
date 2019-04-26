@@ -17,14 +17,17 @@ $router->get('/', static function () use ($router) {
 });
 
 //User
-$router->get('/api/v1/user', ['uses' => '\App\Http\Controllers\UserController@me', 'middleware' => 'auth:api']);
-$router->put('/api/v1/user', ['uses' => '\App\Http\Controllers\UserController@create']);
-$router->post('/api/v1/user', ['uses' => '\App\Http\Controllers\UserController@edit', 'middleware' => 'auth:api']);
+$router->get('/api/v1/user', ['uses' => '\App\Http\Controllers\UserController@viewUser', 'middleware' => 'auth:api']);
+$router->put('/api/v1/user', ['uses' => '\App\Http\Controllers\UserController@createUser']);
+$router->post('/api/v1/user', ['uses' => '\App\Http\Controllers\UserController@editUser', 'middleware' => 'auth:api']);
+
+//user password
+$router->post('/api/v1/user/password', ['uses' => '\App\Http\Controllers\UserController@changeUserPassword', 'middleware' => 'auth:api']);
 
 //User email verification
 $router->get('/email-verification/{username}/{verification_hash}', [
     'as' => 'emailVerification',
-    'uses' => '\App\Http\Controllers\UserController@verify'
+    'uses' => '\App\Http\Controllers\UserController@verifyEmail'
 ]);
 
 //JobProcess

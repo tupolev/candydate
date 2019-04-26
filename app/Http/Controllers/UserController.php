@@ -2,76 +2,93 @@
 
 namespace App\Http\Controllers;
 
-use App\Exceptions\UserRegisterException;
+use App\Exceptions\User\ChangeUserPasswordException;
+use App\Exceptions\User\UserException;
 use App\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
+use Symfony\Component\HttpFoundation\Response as HttpCodes;
 
 class UserController extends JsonController
 {
-    public function me(Request $request)
+    /* Public endpoints */
+
+    public function createUser(Request $request): Response
+    {
+        $userValidator = User::getValidatorForCreatePayload($request->json()->all());
+
+        if ($userValidator->fails()) {
+            return static::buildResponse(
+                ['errors' => $userValidator->errors()->getMessageBag()->toArray()],
+                HttpCodes::HTTP_UNPROCESSABLE_ENTITY
+            );
+        }
+
+        try {
+            return static::buildResponse(
+                User::registerUser($userValidator->validated())->toPublicList(),
+                HttpCodes::HTTP_CREATED
+            );
+        } catch (UserException $ex) {
+            return static::buildResponse($ex->getMessage(), HttpCodes::HTTP_BAD_REQUEST);
+        }
+    }
+
+    public function verifyEmail(string $username, string $verificationHash): string
+    {
+        try {
+            $success = User::completeRegistration($username, $verificationHash);
+        } catch (\Exception $ex) {
+            $success = false;
+        } finally {
+            return View::make('web.EmailVerificationResult', ['username' => $username, 'success' => $success]);
+        }
+    }
+
+    /* Protected endpoints */
+
+    public function viewUser(Request $request): Response
     {
         return static::buildResponse($request->user()->toPublicList());
     }
 
-    public function create(Request $request): string
+    public function editUser(Request $request): Response
     {
-        $userValidator = Validator::make(
-            $request->json()->all(),
-            [
-                'username' => 'bail|required|unique:users|string|max:25|min:4|alpha_dash',
-                'password' => 'bail|required|string|max:16|min:6',
-                'fullname' => 'bail|required|string|max:128|min:4',
-                'email' => 'bail|required|string|unique:users,email|email|max:128',
-                'language_id' => 'bail|required|integer|exists:languages,id',
-            ]
-        );
+        $userValidator = User::getValidatorForEditPayload($request->json()->all());
 
         if ($userValidator->fails()) {
-            return static::buildResponse(['errors' => $userValidator->errors()->getMessageBag()->toArray()], 422);
+            return static::buildResponse(
+                ['errors' => $userValidator->errors()->getMessageBag()->toArray()],
+                HttpCodes::HTTP_UNPROCESSABLE_ENTITY
+            );
         }
-
+        if ($userValidator->validated()['id'] !== Auth::user()->id) {
+            return static::buildUnauthorizedResponse();
+        }
         try {
-            return static::buildResponse(User::registerUser($userValidator->validated())->toPublicList(), 201);
-        } catch (UserRegisterException $ex) {
-            return static::buildResponse($ex->getMessage(), 400);
+            return static::buildResponse(
+                User::editUser($userValidator->validated())->toPublicList(),
+                HttpCodes::HTTP_OK
+            );
+        } catch (\Exception $ex) {
+            return static::buildResponse($ex->getMessage(), HttpCodes::HTTP_BAD_REQUEST);
         }
     }
 
-    public function edit(Request $request): string
-    {
-        $userValidator = Validator::make(
-            $request->json()->all(),
-            [
-                'id' => 'bail|required|integer|unique:users|exists:users,id',
-                'username' => 'bail|required|unique:users|string|max:25|min:4|alpha_dash',
-                'password' => 'bail|required|string|max:16|min:6',
-                'fullname' => 'bail|required|string|max:128|min:4',
-                'email' => 'bail|required|string|unique:users,email|email|max:128',
-                'language_id' => 'bail|required|integer|exists:languages,id',
-            ]
-        );
-
-        if ($userValidator->fails()) {
-            return static::buildResponse(['errors' => $userValidator->errors()->getMessageBag()->toArray()], 422);
-        }
-
-        try {
-            return static::buildResponse(User::registerUser($userValidator->validated())->toPublicList(), 201);
-        } catch (UserRegisterException $ex) {
-            return static::buildResponse($ex->getMessage(), 400);
-        }
-    }
-
-    public function verify(string $username, string $verificationHash): string
+    public function changeUserPassword(Request $request): Response
     {
         try {
-            $success = User::completeRegistration($username, $verificationHash);
-        } catch (\Exception|\ErrorException $ex) {
-            $success = false;
-        } finally {
-            return View::make('web.EmailVerificationResult', ['username' => $username, 'success' => $success]);
+            $requestBody = $request->json()->all();
+            if (empty($requestBody['id']) || $requestBody['id'] !== Auth::user()->id) {
+                return static::buildUnauthorizedResponse();
+            }
+            User::changeUserPassword($requestBody);
+
+            return static::buildResponse([], HttpCodes::HTTP_OK);
+        } catch (ChangeUserPasswordException $ex) {
+            return static::buildResponse($ex->getMessage(), HttpCodes::HTTP_BAD_REQUEST);
         }
     }
 }
