@@ -72,6 +72,31 @@ class JobProcess extends ScopeAwareModel
         );
     }
 
+    public static function getValidatorForEditPayload(array $payload): Validator
+    {
+        return ValidatorFacade::make(
+            $payload,
+            [
+//                'id' => 'bail|required|integer|exists:job_processes,id',
+                'name' => 'bail|required|string',
+                'organization_name' => 'bail|required|string',
+                'organization_description' => 'bail|string',
+                'job_title' => 'bail|required|string',
+                'job_description' => 'bail|string',
+                'job_link' => 'bail|url',
+                'job_origin_platform' => 'bail|string',
+                'salary_requested' => 'bail|string',
+                'salary_offered' => 'bail|string',
+                'location_country' => 'bail|required|string|min:2|max:3|alpha',
+                'location_city' => 'bail|required|string',
+                'location_extra_info' => 'bail|string',
+                'is_fully_remote' => 'bail|required|boolean',
+                'date_start_offered' => 'bail|date',
+                'date_start_requested' => 'bail|date',
+            ]
+        );
+    }
+
     public function __construct(array $attributes = [])
     {
         $this->fillable(array_merge(static::$publicFields, static::$privateFields));
@@ -92,7 +117,17 @@ class JobProcess extends ScopeAwareModel
             ? null : date_create_from_format('Y-m-d', $jobProcessDataFromRequest['date_start_requested']);
         $jobProcess->save();
 
+
         return $jobProcess;
+    }
+
+    public static function editJobProcess(int $id, array $jobProcessDataFromRequest): self
+    {
+//        $id = $jobProcessDataFromRequest['id'];
+//        unset($jobProcessDataFromRequest['id']);
+        self::query()->where('id', '=', $id)->update($jobProcessDataFromRequest);
+
+        return self::query()->findOrFail($id);
     }
 
     public static function deleteProcess(int $id): bool

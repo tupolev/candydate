@@ -41,9 +41,9 @@ class JobProcessController extends JsonController
         }
     }
 
-    public function editJobProcess(int $id, Request $request): string
+    public function editJobProcess(int $id, Request $request): Response
     {
-        $jobProcessValidator = JobProcess::getValidatorForCreatePayload($request->json()->all());
+        $jobProcessValidator = JobProcess::getValidatorForEditPayload($request->json()->all());
 
         if ($jobProcessValidator->fails()) {
             return static::buildResponse(
@@ -54,7 +54,7 @@ class JobProcessController extends JsonController
 
         try {
             return static::buildResponse(
-                JobProcess::editJobProcess($jobProcessValidator->validated())->toPublicList(),
+                JobProcess::editJobProcess($id, $jobProcessValidator->validated())->toPublicList(),
                 HttpCodes::HTTP_CREATED
             );
         } catch (JobProcessCreateException $ex) {
@@ -62,7 +62,7 @@ class JobProcessController extends JsonController
         }
     }
 
-    public function deleteJobProcess(int $id): string
+    public function deleteJobProcess(int $id): Response
     {
         return static::buildResponse(JobProcess::deleteProcess($id));
     }

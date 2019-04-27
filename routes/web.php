@@ -37,5 +37,9 @@ $router->get('/api/v1/process/{id}', ['uses' => '\App\Http\Controllers\JobProces
 $router->post('/api/v1/process/{id}', ['uses' => '\App\Http\Controllers\JobProcessController@editJobProcess', 'middleware' => 'auth:api']);
 $router->delete('/api/v1/process/{id}', ['uses' => '\App\Http\Controllers\JobProcessController@deleteJobProcess', 'middleware' => 'auth:api']);
 
+//JobProcessLog
+$router->get('/api/v1/process/{id}/log', ['uses' => '\App\Http\Controllers\JobProcessLogController@getJobProcessLog', 'middleware' => 'auth:api']);
+$router->put('/api/v1/process/{id}/log', ['uses' => '\App\Http\Controllers\JobProcessLogController@createJobProcessLogEntry', 'middleware' => 'auth:api']);
+$router->get('/api/v1/process/{jobProcessId}/log/{jobProcessLogId}', ['uses' => '\App\Http\Controllers\JobProcessLogController@getJobProcessLogEntry', 'middleware' => 'auth:api']);
 
 //Contacts
