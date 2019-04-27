@@ -14,23 +14,29 @@ class JobProcess extends ScopeAwareModel
 
     protected static $publicFields = [
         'id',
-        'role',
-        'fullname',
-        'username',
-        'email',
-        'verified',
-        'language',
+        'user_id',
+        'name',
         'active',
-    ];
-
-    protected static $privateFields = [
-        'password',
-        'salt',
-        'verification_link',
+        'organization_name',
+        'organization_description',
+        'job_title',
+        'job_description',
+        'job_link',
+        'job_origin_platform',
+        'salary_requested',
+        'salary_offered',
+        'location_country',
+        'location_city',
+        'location_extra_info',
+        'is_fully_remote',
+        'date_start_offered',
+        'date_start_requested',
+        'deleted_at',
         'created_at',
         'updated_at',
-        'deleted_at',
     ];
+
+    protected static $privateFields = [];
 
     /**
      * The attributes that are mass assignable.
@@ -39,18 +45,29 @@ class JobProcess extends ScopeAwareModel
      */
     protected $fillable = [];
     protected $table = self::TABLE_NAME;
-    protected $dateFormat = 'Y-m-d\TH:i:sO';
+    protected $dateFormat = 'Y-m-d H:i:s';
 
     public static function getValidatorForCreatePayload(array $payload): Validator
     {
         return ValidatorFacade::make(
             $payload,
             [
-                'username' => 'bail|required|unique:users|string|max:25|min:4|alpha_dash',
-                'password' => 'bail|required|string|max:16|min:6',
-                'fullname' => 'bail|required|string|max:128|min:4',
-                'email' => 'bail|required|string|unique:users,email|email|max:128',
-                'language_id' => 'bail|required|integer|exists:languages,id',
+                'user_id' => 'bail|required|integer|exists:users,id',
+                'name' => 'bail|required|string',
+                'organization_name' => 'bail|required|string',
+                'organization_description' => 'bail|string',
+                'job_title' => 'bail|required|string',
+                'job_description' => 'bail|string',
+                'job_link' => 'bail|url',
+                'job_origin_platform' => 'bail|string',
+                'salary_requested' => 'bail|string',
+                'salary_offered' => 'bail|string',
+                'location_country' => 'bail|required|string|min:2|max:3|alpha',
+                'location_city' => 'bail|required|string',
+                'location_extra_info' => 'bail|string',
+                'is_fully_remote' => 'bail|required|boolean',
+                'date_start_offered' => 'bail|date',
+                'date_start_requested' => 'bail|date',
             ]
         );
     }
@@ -69,12 +86,18 @@ class JobProcess extends ScopeAwareModel
     public static function createJobProcess(array $jobProcessDataFromRequest): self
     {
         $jobProcess = new self($jobProcessDataFromRequest);
-//        $user->role_id = Role::query()->where(['name' => Role::ROLE_USER])->firstOrFail(['id'])->getAttributeValue('id');
-//        $user->language_id = Language::query()->where(['id' => $userDataFromRequest['language_id']])->firstOrFail(['id'])->getAttributeValue('id');
-
+        $jobProcess->date_start_offered = empty($jobProcessDataFromRequest['date_start_offered'])
+            ? null : date_create_from_format('Y-m-d', $jobProcessDataFromRequest['date_start_offered']);
+        $jobProcess->date_start_requested = $jobProcessDataFromRequest['date_start_requested']
+            ? null : date_create_from_format('Y-m-d', $jobProcessDataFromRequest['date_start_requested']);
         $jobProcess->save();
 
         return $jobProcess;
+    }
+
+    public static function deleteProcess(int $id): bool
+    {
+        return static::query()->where('id', '=', $id)->update(['deleted_at' => new \DateTime()]);
     }
 
     public function user(): void
