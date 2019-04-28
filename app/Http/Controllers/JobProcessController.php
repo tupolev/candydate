@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\JobProcess\JobProcessCreateException;
 use App\JobProcess;
+use App\JobProcessLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
@@ -65,5 +66,26 @@ class JobProcessController extends JsonController
     public function deleteJobProcess(int $id): Response
     {
         return static::buildResponse(JobProcess::deleteProcess($id));
+    }
+
+    public function changeJobProcessStatus(int $id, Request $request): Response
+    {
+        $jobProcessStatusValidator = JobProcessLog::getValidatorForChangeStatusPayload($request->json()->all());
+
+        if ($jobProcessStatusValidator->fails()) {
+            return static::buildResponse(
+                ['errors' => $jobProcessStatusValidator->errors()->getMessageBag()->toArray()],
+                HttpCodes::HTTP_UNPROCESSABLE_ENTITY
+            );
+        }
+
+        try {
+            return static::buildResponse(
+                JobProcessLog::changeJobProcessStatus($id, $jobProcessStatusValidator->validated()['job_process_status_id']),
+                HttpCodes::HTTP_CREATED
+            );
+        } catch (\Exception $ex) {
+            return static::buildResponse($ex->getMessage(), HttpCodes::HTTP_BAD_REQUEST);
+        }
     }
 }

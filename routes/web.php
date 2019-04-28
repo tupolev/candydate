@@ -42,4 +42,7 @@ $router->get('/api/v1/process/{id}/log', ['uses' => '\App\Http\Controllers\JobPr
 $router->put('/api/v1/process/{id}/log', ['uses' => '\App\Http\Controllers\JobProcessLogController@createJobProcessLogEntry', 'middleware' => 'auth:api']);
 $router->get('/api/v1/process/{jobProcessId}/log/{jobProcessLogId}', ['uses' => '\App\Http\Controllers\JobProcessLogController@getJobProcessLogEntry', 'middleware' => 'auth:api']);
 
+//JobProcessStatus
+$router->post('/api/v1/process/{jobProcessId}/status', ['uses' => '\App\Http\Controllers\JobProcessStatusController@changeJobProcessStatus', 'middleware' => 'auth:api']);
+
 //Contacts

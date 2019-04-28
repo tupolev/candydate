@@ -77,7 +77,6 @@ class JobProcess extends ScopeAwareModel
         return ValidatorFacade::make(
             $payload,
             [
-//                'id' => 'bail|required|integer|exists:job_processes,id',
                 'name' => 'bail|required|string',
                 'organization_name' => 'bail|required|string',
                 'organization_description' => 'bail|string',
@@ -123,8 +122,6 @@ class JobProcess extends ScopeAwareModel
 
     public static function editJobProcess(int $id, array $jobProcessDataFromRequest): self
     {
-//        $id = $jobProcessDataFromRequest['id'];
-//        unset($jobProcessDataFromRequest['id']);
         self::query()->where('id', '=', $id)->update($jobProcessDataFromRequest);
 
         return self::query()->findOrFail($id);

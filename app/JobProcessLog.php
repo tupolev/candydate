@@ -62,6 +62,16 @@ class JobProcessLog extends ScopeAwareModel
         );
     }
 
+    public static function getValidatorForChangeStatusPayload(array $payload): Validator
+    {
+        return ValidatorFacade::make(
+            $payload,
+            [
+                'job_process_status_id' => 'bail|required|integer|exists:job_process_statuses,id',
+            ]
+        );
+    }
+
     public static function listByJobProcessLogId(int $jobProcessLogId): array
     {
         return static::query()->findOrFail($jobProcessLogId)->toArray();
@@ -79,6 +89,16 @@ class JobProcessLog extends ScopeAwareModel
         $jobProcessLog->save();
 
         return $jobProcessLog;
+    }
+
+    public static function changeJobProcessStatus(int $jobProcessId, int $jobProcessStatusId): bool
+    {
+        return is_array(self::createJobProcessLogEntry([
+            'job_process_id' => $jobProcessId,
+            'job_process_status_id' => $jobProcessStatusId,
+            'title' => 'Status changed',
+            'details' => 'Status changed',
+        ]));
     }
 
 }
