@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 
-class JobProcessStatusController extends AuthAwareController
+class JobProcessStatusController extends JsonController
 {
     public function changeJobProcessStatus(Request $request, int $id): Response
     {

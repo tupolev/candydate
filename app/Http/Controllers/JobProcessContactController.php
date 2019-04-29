@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 
-class JobProcessContactController extends AuthAwareController
+class JobProcessContactController extends JsonController
 {
     public function listJobProcessContacts(Request $request, int $id): Response
     {

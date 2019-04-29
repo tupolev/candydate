@@ -10,7 +10,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\View;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 
-class UserController extends AuthAwareController
+class UserController extends JsonController
 {
     /* Public endpoints */
 
