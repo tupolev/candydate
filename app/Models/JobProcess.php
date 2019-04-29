@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -144,9 +144,9 @@ class JobProcess extends ScopeAwareModel
         return static::query()->where('id', '=', $id)->update(['deleted_at' => new \DateTime()]);
     }
 
-    public static function isJobProcessFromUser(int $jobProcessId, int $userId): bool
+    public static function jobProcessBelongsToUser(int $jobProcessId, int $userId): bool
     {
-        $jobProcess = self::query()->findOrFail($jobProcessId)->first();
+        $jobProcess = self::query()->where(['id' => $jobProcessId])->where(['deleted_at' => null])->firstOrFail();
 
         return ($jobProcess instanceof self && $jobProcess->user_id === $userId);
     }

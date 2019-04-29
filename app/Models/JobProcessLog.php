@@ -1,9 +1,10 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Support\Facades\Validator as ValidatorFacade;
+use Illuminate\Validation\ValidationException;
 
 class JobProcessLog extends ScopeAwareModel
 {
@@ -91,11 +92,20 @@ class JobProcessLog extends ScopeAwareModel
         return $jobProcessLog;
     }
 
-    public static function changeJobProcessStatus(int $jobProcessId, int $jobProcessStatusId): bool
+    /**
+     * @param int $jobProcessId
+     * @param array $jobProcessStatusData
+     * @return bool
+     * @throws ValidationException
+     */
+    public static function changeJobProcessStatus(int $jobProcessId, array $jobProcessStatusData): bool
     {
+
+        self::getValidatorForChangeStatusPayload($jobProcessStatusData)->validate();
+
         $created = self::createJobProcessLogEntry([
             'job_process_id' => $jobProcessId,
-            'job_process_status_id' => $jobProcessStatusId,
+            'job_process_status_id' => $jobProcessStatusData['job_process_status_id'],
             'title' => 'Status changed',
             'details' => 'Status changed',
         ]);

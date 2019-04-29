@@ -78,8 +78,12 @@ $fixers = [
     'unary_operator_spaces' => true,
     'visibility_required' => true,
 ];
+$finder = PhpCsFixer\Finder::create()
+    ->exclude(array('resources', 'vendor'))
+    ->in(__DIR__);
 return Config::create()
     ->setUsingCache(true)
     ->setRiskyAllowed(true)
     ->setRules($fixers)
+    ->setFinder($finder)
 ;

@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Exceptions\User\ChangeUserPasswordException;
-use App\User;
+use App\Models\User;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 

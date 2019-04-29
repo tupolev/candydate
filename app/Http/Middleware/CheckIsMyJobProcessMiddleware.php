@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\JobProcess;
+use App\Models\JobProcess;
 use App\Traits\Http\JsonResponseTrait;
 use Closure;
 use Illuminate\Support\Facades\Auth;
@@ -21,8 +21,8 @@ class CheckIsMyJobProcessMiddleware
      */
     public function handle($request, Closure $next)
     {
-        return JobProcess::isJobProcessFromUser(
-            empty($request->route()[2]['id']) ? null : $request->route()[2]['id'],
+        return JobProcess::jobProcessBelongsToUser(
+            empty($request->route()[2]['jobProcessId']) ? null : $request->route()[2]['jobProcessId'],
             Auth::user()->id
         ) ? $next($request) : static::buildUnauthorizedResponse();
     }

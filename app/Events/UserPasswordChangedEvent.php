@@ -2,7 +2,8 @@
 
 namespace App\Events;
 
-use App\User;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 
 class UserPasswordChangedEvent extends Event
 {
@@ -14,7 +15,7 @@ class UserPasswordChangedEvent extends Event
     /**
      * Create a new event instance.
      *
-     * @param User $user
+     * @param User|Model $user
      */
     public function __construct(User $user)
     {

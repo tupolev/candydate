@@ -2,12 +2,12 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\JobProcessContact;
 use App\Traits\Http\JsonResponseTrait;
-use App\User;
 use Closure;
 use Illuminate\Support\Facades\Auth;
 
-class CheckIsMyUserMiddleware
+class CheckIsMyJobProcessContactMiddleware
 {
     use JsonResponseTrait;
 
@@ -21,9 +21,9 @@ class CheckIsMyUserMiddleware
      */
     public function handle($request, Closure $next)
     {
-        return User::canAccessResource(
-            empty($request->route()[2]['id']) ? null : $request->route()[2]['id'],
-            Auth::user()->id
+        return JobProcessContact::jobProcessContactBelongsToJobProcess(
+            empty($request->route()[2]['jobProcessId']) ? null : $request->route()[2]['jobProcessId'],
+            empty($request->route()[2]['jobProcessContactId']) ? null : $request->route()[2]['jobProcessContactId']
         ) ? $next($request) : static::buildUnauthorizedResponse();
     }
 }

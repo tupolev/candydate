@@ -1,10 +1,13 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException as ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Validator as ValidatorFacade;
+use Illuminate\Validation\ValidationException;
 
 class JobProcessContact extends ScopeAwareModel
 {
@@ -51,7 +54,6 @@ class JobProcessContact extends ScopeAwareModel
         return ValidatorFacade::make(
             $payload,
             [
-                'job_process_id' => 'bail|required|integer|exists:job_processes,id',
                 'fullname' => 'bail|required|string',
                 'email' => 'bail|email|string',
                 'phone_number' => 'bail|string',
@@ -65,8 +67,6 @@ class JobProcessContact extends ScopeAwareModel
         return ValidatorFacade::make(
             $payload,
             [
-                'id' => 'bail|required|integer|exists:job_process_contacts,id',
-                'job_process_id' => 'bail|required|integer|exists:job_processes,id',
                 'fullname' => 'bail|required|string',
                 'email' => 'bail|email|string',
                 'phone_number' => 'bail|string',
@@ -77,27 +77,65 @@ class JobProcessContact extends ScopeAwareModel
 
     public static function listByProcessId(int $jobProcessId): array
     {
-        return static::query()->where(['job_process_id' => $jobProcessId])->get()->toArray();
+        return static::query()->where(['job_process_id' => $jobProcessId])->where(['deleted_at' => null])->get()->toArray();
     }
 
-    public static function createJobProcessContact(int $jobProcessContactId, array $jobProcessContactDataFromRequest): self
+    public static function viewJobProcessContact(int $jobProcessContactId): array
     {
-        $jobProcessContact = new self($jobProcessContactDataFromRequest);
+        return self::query()->find($jobProcessContactId)->first()->toPublicList();
+    }
+
+    /**
+     * @param int $jobProcessContactId
+     * @param array $jobProcessContactData
+     * @return JobProcessContact|Model
+     * @throws ValidationException
+     * @throws ModelNotFoundException
+     */
+    public static function createJobProcessContact(int $jobProcessContactId, array $jobProcessContactData): self
+    {
+        self::getValidatorForCreatePayload($jobProcessContactData)->validate();
+
+        $jobProcessContact = new self($jobProcessContactData);
         $jobProcessContact->jobProcess()->associate($jobProcessContactId);
         $jobProcessContact->save();
 
         return $jobProcessContact;
     }
 
-    public static function editJobProcessContact(int $id, array $jobProcessContactDataFromRequest): self
+    /**
+     * @param int $id
+     * @param int $jobProcessId
+     * @param array $jobProcessContactData
+     * @return JobProcessContact|Model
+     * @throws ValidationException
+     * @throws ModelNotFoundException
+     */
+    public static function editJobProcessContact(int $id, int $jobProcessId, array $jobProcessContactData): self
     {
-        self::query()->where('id', '=', $id)->update($jobProcessContactDataFromRequest);
+        self::getValidatorForEditPayload($jobProcessContactData)->validate();
+
+        self::query()
+            ->where('id', '=', $id)
+            ->where('job_process_id', '=', $jobProcessId)
+            ->update($jobProcessContactData);
 
         return self::query()->findOrFail($id);
     }
 
-    public static function deleteJobProcessContact(int $id): int
+    public static function deleteJobProcessContact(int $id): void
     {
-        return static::query()->where('id', '=', $id)->update(['deleted_at' => new \DateTime()]);
+        static::query()->where('id', '=', $id)->update(['deleted_at' => new \DateTime()]);
+    }
+
+    public static function jobProcessContactBelongsToJobProcess(int $jobProcessId, int $jobProcessContactId): bool
+    {
+        $jobProcessContact = self::query()
+            ->where('id', '=', $jobProcessContactId)
+            ->where('job_process_id', '=', $jobProcessId)
+            ->where(['deleted_at' => null])
+            ->first();
+
+        return ($jobProcessContact instanceof self && $jobProcessContact->id === $jobProcessContactId);
     }
 }

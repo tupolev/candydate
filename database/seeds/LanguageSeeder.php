@@ -1,6 +1,6 @@
 <?php
 
-use App\Language;
+use App\Models\Language;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -18,22 +18,21 @@ class LanguageSeeder extends Seeder
             'name' => 'English',
             'locale' => 'en',
             'active' => true,
-            'created_at' => DateTime::createFromFormat('Y-m-d\TH:i:sO', 'now'),
+            'created_at' => DateTime::createFromFormat('Y-m-d H:i:s', 'now'),
         ]);
         DB::table(Language::TABLE_NAME)->insert([
             'id' => 2,
             'name' => 'Deutsch',
             'locale' => 'de',
             'active' => true,
-            'created_at' => DateTime::createFromFormat('Y-m-d\TH:i:sO', 'now'),
+            'created_at' => DateTime::createFromFormat('Y-m-d H:i:s', 'now'),
         ]);
         DB::table(Language::TABLE_NAME)->insert([
             'id' => 3,
             'name' => 'Español',
             'locale' => 'es',
             'active' => true,
-            'created_at' => DateTime::createFromFormat('Y-m-d\TH:i:sO', 'now'),
+            'created_at' => DateTime::createFromFormat('Y-m-d H:i:s', 'now'),
         ]);
-
     }
 }

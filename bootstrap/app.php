@@ -6,9 +6,7 @@ use Illuminate\Mail\MailServiceProvider;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-(new Laravel\Lumen\Bootstrap\LoadEnvironmentVariables(
-    dirname(__DIR__)
-))->bootstrap();
+(new Laravel\Lumen\Bootstrap\LoadEnvironmentVariables(dirname(__DIR__)))->bootstrap();
 
 /*
 |--------------------------------------------------------------------------
@@ -21,9 +19,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 |
 */
 
-$app = new Laravel\Lumen\Application(
-    dirname(__DIR__)
-);
+$app = new Laravel\Lumen\Application(dirname(__DIR__));
 
 $app->withFacades(true, [Notification::class => 'Notification']);
 $app->withEloquent();
@@ -64,16 +60,16 @@ $app->singleton(
 |
 */
 
-$app->middleware([
+//$app->middleware([
 //    App\Http\Middleware\CheckIsMyJobProcessMiddleware::class
-]);
+//]);
 
 $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
 //     'client' => \App\Http\Middleware\CheckClientCredentials::class,
 //     'client' => CheckClientCredentials::class,
-    'is_my_job_process' => App\Http\Middleware\CheckIsMyJobProcessMiddleware::class,
-    'is_my_user' => App\Http\Middleware\CheckIsMyUserMiddleware::class,
+    'is_owner_job_process' => App\Http\Middleware\CheckIsMyJobProcessMiddleware::class,
+    'is_owner_job_process_contact' => App\Http\Middleware\CheckIsMyJobProcessContactMiddleware::class,
 ]);
 
 /*

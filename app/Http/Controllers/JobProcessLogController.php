@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\JobProcessLog;
+use App\Models\JobProcessLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;

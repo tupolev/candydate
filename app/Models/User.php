@@ -1,13 +1,15 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use App\Events\UserPasswordChangedEvent;
-use App\Exceptions\User\ChangeUserPasswordException;
 use App\Notifications\NewUserRegisteredNotification;
 use Illuminate\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Laravel\Lumen\Auth\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
@@ -29,21 +31,21 @@ class User extends ScopeAwareModel implements AuthenticatableContract, Authoriza
 
     protected static $publicFields = [
         'id',
-        'role',
         'fullname',
         'username',
         'email',
         'verified',
         'language',
         'active',
+        'created_at',
+        'updated_at',
     ];
 
     protected static $privateFields = [
+        'role',
         'password',
         'salt',
         'verification_link',
-        'created_at',
-        'updated_at',
         'deleted_at',
     ];
 
@@ -88,7 +90,6 @@ class User extends ScopeAwareModel implements AuthenticatableContract, Authoriza
         return Validator::make(
             $payload,
             [
-                'id' => 'bail|required|integer|exists:users,id',
                 'fullname' => 'bail|required|string|max:128|min:4',
                 'email' => 'bail|required|string|email|max:128',
                 'language_id' => 'bail|required|integer|exists:languages,id',
@@ -101,22 +102,32 @@ class User extends ScopeAwareModel implements AuthenticatableContract, Authoriza
         return Validator::make(
             $payload,
             [
-                'id' => 'bail|required|integer|exists:users,id',
                 'password' => 'bail|required|string|max:16|min:6',
             ]
         );
     }
 
-    public static function registerUser(array $userDataFromRequest): self
+    /**
+     * @param array $userData
+     *
+     * @return User
+     * @throws ValidationException
+     * @throws ModelNotFoundException
+     *
+     * @throws \Exception
+     */
+    public static function registerUser(array $userData): self
     {
-        $user = new self($userDataFromRequest);
+        self::getValidatorForCreatePayload($userData)->validate();
+
+        $user = new self($userData);
         $user->role_id = Role::query()->where(['name' => Role::ROLE_USER])->firstOrFail(['id'])->getAttributeValue('id');
-        $user->language_id = Language::query()->where(['id' => $userDataFromRequest['language_id']])->firstOrFail(['id'])->getAttributeValue('id');
+        $user->language_id = Language::query()->where(['id' => $userData['language_id']])->firstOrFail(['id'])->getAttributeValue('id');
         $user->generateRandomSalt();
         $user->generateRandomVerificationLink();
         $user->setCreatedAt(new \DateTime());
         $user->verified = false;
-        $user->password = $user->encodePassword($userDataFromRequest['password'], $user->salt);
+        $user->password = self::encodePassword($userData['password'], $user->salt);
         $user->save();
 
         $user->notify(new NewUserRegisteredNotification($user));
@@ -134,53 +145,48 @@ class User extends ScopeAwareModel implements AuthenticatableContract, Authoriza
         return $user->save();
     }
 
-    public static function editUser(array $userDataFromRequest): self
+    /**
+     * @param int $userId
+     * @param array $userData
+     *
+     * @return User|Model
+     * @throws ValidationException
+     * @throws ModelNotFoundException
+     *
+     * @throws \Exception
+     */
+    public static function editUser(int $userId, array $userData): self
     {
-        $changes = [
-            'language_id' => $userDataFromRequest['language_id'],
-            'fullname' => $userDataFromRequest['fullname'],
-            'email' => $userDataFromRequest['email'],
-        ];
-        self::query()->where('id', '=', $userDataFromRequest['id'])->update($changes);
+        self::getValidatorForEditPayload($userData)->validate();
 
-        //username is not changeable. email is.
+        self::query()->where('id', '=', $userId)->update([
+            'language_id' => $userData['language_id'],
+            'fullname' => $userData['fullname'],
+            'email' => $userData['email'],
+        ]);
 
-
-        return self::query()->findOrFail($userDataFromRequest['id']);
+        return self::query()->findOrFail($userId);
     }
 
     /**
-     * @param array $userDataFromRequest
+     * @param int $userId
+     * @param array $userData
      *
-     * @throws ChangeUserPasswordException
+     * @throws ValidationException
+     * @throws ModelNotFoundException
+     * @throws \Exception
      */
-    public static function changeUserPassword(array $userDataFromRequest)
+    public static function changeUserPassword(int $userId, array $userData)
     {
-        $userValidator = self::getValidatorForChangePasswordPayload($userDataFromRequest);
+        self::getValidatorForChangePasswordPayload($userData)->validate();
 
-        if ($userValidator->fails()) {
-            $errorList = $userValidator->errors()->getMessageBag()->get('password');
-            throw new ChangeUserPasswordException(implode('. ', $errorList));
+        $user = self::query()->findOrFail($userId);
+        $newEncodedPassord = self::encodePassword($userData['password'], $user->salt);
+        if ($newEncodedPassord !== $user->password) {
+            $user->update(['password' => $newEncodedPassord, self::UPDATED_AT => new \DateTime()]);
+
+            Event::dispatch(new UserPasswordChangedEvent($user));
         }
-
-        try {
-            $user = self::query()->find($userDataFromRequest['id']);
-            $newEncodedPassord = self::encodePassword($userDataFromRequest['password'], $user->salt);
-            if ($newEncodedPassord !== $user->password) {
-                $user->update(['password' => $newEncodedPassord, self::UPDATED_AT => new \DateTime()]);
-
-                Event::dispatch(new UserPasswordChangedEvent($user));
-            }
-        } catch (\Exception $ex) {
-            throw new ChangeUserPasswordException($ex->getMessage());
-        }
-    }
-
-    public static function canAccessResource(int $requestUserId, int $authUserId): bool
-    {
-        $user = self::query()->findOrFail($authUserId)->first();
-
-        return ($user instanceof self && $user->id === $requestUserId);
     }
 
     public function role()
@@ -225,10 +231,5 @@ class User extends ScopeAwareModel implements AuthenticatableContract, Authoriza
     private static function generateRandomHash(): string
     {
         return hash(self::HASH_ALGORITHM_SHA512, strftime(DATE_ATOM, time()));
-    }
-
-    public function getEmailTag(): string
-    {
-        return sprintf('%s<%s>', $this->fullname, $this->email);
     }
 }

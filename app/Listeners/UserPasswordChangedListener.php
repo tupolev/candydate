@@ -3,7 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\UserPasswordChangedEvent;
-use App\User;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Laravel\Passport\Token;
 
@@ -31,7 +31,6 @@ class UserPasswordChangedListener
         //invalidate tokens
         $user = $event->getUser();
         /* @var User $user */
-//        $user = User::query()->find($userId);
         $user->tokens()->each(static function ($token) use ($user) {
             /* @var $token Token */
             $token->revoke();
