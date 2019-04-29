@@ -2,7 +2,6 @@
 
 namespace App;
 
-
 class Language extends ScopeAwareModel
 {
     public const TABLE_NAME = 'languages';

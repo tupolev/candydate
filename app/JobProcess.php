@@ -2,7 +2,6 @@
 
 namespace App;
 
-
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;

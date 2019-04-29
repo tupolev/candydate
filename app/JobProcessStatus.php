@@ -22,5 +22,4 @@ class JobProcessStatus extends Model
     {
         $this->hasMany(JobProcess::class);
     }
-
 }

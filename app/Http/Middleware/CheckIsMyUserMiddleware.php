@@ -2,12 +2,10 @@
 
 namespace App\Http\Middleware;
 
-use App\JobProcess;
 use App\Traits\Http\JsonResponseTrait;
 use App\User;
 use Closure;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
 class CheckIsMyUserMiddleware
 {
@@ -18,6 +16,7 @@ class CheckIsMyUserMiddleware
      *
      * @param \Illuminate\Http\Request $request
      * @param \Closure $next
+     *
      * @return mixed
      */
     public function handle($request, Closure $next)

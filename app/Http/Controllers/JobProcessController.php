@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\JobProcess\JobProcessCreateException;
 use App\JobProcess;
-use App\JobProcessLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;

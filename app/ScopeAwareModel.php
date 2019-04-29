@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App;
-
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -27,7 +25,7 @@ abstract class ScopeAwareModel extends Model
     {
         $returnList = [];
         foreach (array_merge(static::$publicFields, static::$privateFields) as $fieldName) {
-            $returnList[$fieldName] = $this->$fieldName instanceof ScopeAwareModel
+            $returnList[$fieldName] = $this->$fieldName instanceof self
                 ? $this->$fieldName->toPrivateList()
                 : $this->$fieldName;
         }

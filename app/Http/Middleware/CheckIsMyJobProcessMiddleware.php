@@ -6,7 +6,6 @@ use App\JobProcess;
 use App\Traits\Http\JsonResponseTrait;
 use Closure;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
 class CheckIsMyJobProcessMiddleware
 {
@@ -17,6 +16,7 @@ class CheckIsMyJobProcessMiddleware
      *
      * @param \Illuminate\Http\Request $request
      * @param \Closure $next
+     *
      * @return mixed
      */
     public function handle($request, Closure $next)

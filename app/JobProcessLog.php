@@ -2,7 +2,6 @@
 
 namespace App;
 
-use Illuminate\Validation\Rule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Support\Facades\Validator as ValidatorFacade;
 
@@ -103,5 +102,4 @@ class JobProcessLog extends ScopeAwareModel
 
         return $created instanceof self && is_numeric($created->id);
     }
-
 }

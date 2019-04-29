@@ -2,7 +2,6 @@
 
 namespace App;
 
-
 class Role extends ScopeAwareModel
 {
     public const TABLE_NAME = 'roles';
@@ -28,7 +27,6 @@ class Role extends ScopeAwareModel
         'updated_at',
         'deleted_at',
     ];
-
 
     public function users()
     {

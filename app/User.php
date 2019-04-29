@@ -60,7 +60,7 @@ class User extends ScopeAwareModel implements AuthenticatableContract, Authoriza
      * @var array
      */
     protected $hidden = [
-        'password', 'salt', 'verification_link', 'role_id', 'created_at', 'updated_at', 'deleted_at'
+        'password', 'salt', 'verification_link', 'role_id', 'created_at', 'updated_at', 'deleted_at',
     ];
 
     public function __construct(array $attributes = [])
@@ -126,7 +126,7 @@ class User extends ScopeAwareModel implements AuthenticatableContract, Authoriza
 
     public static function completeRegistration(string $username, string $verificationHash): bool
     {
-        $user = User::query()->where(['username' => $username, 'verification_link' => $verificationHash])->firstOrFail();
+        $user = self::query()->where(['username' => $username, 'verification_link' => $verificationHash])->firstOrFail();
         $user->verified = true;
         $user->active = true;
         $user->setUpdatedAt(new \DateTime());
@@ -141,16 +141,17 @@ class User extends ScopeAwareModel implements AuthenticatableContract, Authoriza
             'fullname' => $userDataFromRequest['fullname'],
             'email' => $userDataFromRequest['email'],
         ];
-        User::query()->where('id', '=', $userDataFromRequest['id'])->update($changes);
+        self::query()->where('id', '=', $userDataFromRequest['id'])->update($changes);
 
         //username is not changeable. email is.
 
 
-        return User::query()->findOrFail($userDataFromRequest['id']);
+        return self::query()->findOrFail($userDataFromRequest['id']);
     }
 
     /**
      * @param array $userDataFromRequest
+     *
      * @throws ChangeUserPasswordException
      */
     public static function changeUserPassword(array $userDataFromRequest)
@@ -169,7 +170,6 @@ class User extends ScopeAwareModel implements AuthenticatableContract, Authoriza
                 $user->update(['password' => $newEncodedPassord, self::UPDATED_AT => new \DateTime()]);
 
                 Event::dispatch(new UserPasswordChangedEvent($user));
-
             }
         } catch (\Exception $ex) {
             throw new ChangeUserPasswordException($ex->getMessage());

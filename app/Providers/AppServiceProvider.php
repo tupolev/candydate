@@ -16,6 +16,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton('mailer', static function ($app) {
             $app->configure('services');
+
             return $app->loadComponent('mail', MailServiceProvider::class, 'mailer');
         });
     }

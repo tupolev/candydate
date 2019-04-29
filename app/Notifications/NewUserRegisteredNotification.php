@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Notifications;
-
 
 use App\User;
 use Illuminate\Bus\Queueable;
@@ -35,6 +33,7 @@ class NewUserRegisteredNotification extends Notification
      * Get the notification’s delivery channels.
      *
      * @param mixed $notifiable
+     *
      * @return array
      */
     public function via($notifiable): array
@@ -46,6 +45,7 @@ class NewUserRegisteredNotification extends Notification
      * Get the mail representation of the notification.
      *
      * @param mixed $notifiable
+     *
      * @return MailMessage
      */
     public function toMail($notifiable)
@@ -54,7 +54,7 @@ class NewUserRegisteredNotification extends Notification
             ->subject('Verify your account, please.')
             ->markdown('emails.RegisterConfirmationEmail', [
                 'user' => $this->user,
-                'verificationLink' => $this->getVerificationLink($this->user->username, $this->user->verification_link)
+                'verificationLink' => $this->getVerificationLink($this->user->username, $this->user->verification_link),
             ]);
     }
 
@@ -62,7 +62,7 @@ class NewUserRegisteredNotification extends Notification
     {
         return route('emailVerification', [
             'username' => $username,
-            'verification_hash' => $verificationHash
+            'verification_hash' => $verificationHash,
         ]);
     }
 }

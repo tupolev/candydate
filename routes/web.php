@@ -27,7 +27,7 @@ $router->post('/api/v1/user/password', ['uses' => '\App\Http\Controllers\UserCon
 //User email verification
 $router->get('/email-verification/{username}/{verification_hash}', [
     'as' => 'emailVerification',
-    'uses' => '\App\Http\Controllers\UserController@verifyEmail'
+    'uses' => '\App\Http\Controllers\UserController@verifyEmail',
 ]);
 
 //JobProcess
