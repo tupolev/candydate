@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Middleware\CheckIsMyJobProcessMiddleware;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Contracts\Mail\Mailer;
 use Illuminate\Mail\MailServiceProvider;
