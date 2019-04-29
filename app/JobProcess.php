@@ -4,6 +4,9 @@ namespace App;
 
 
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Validator as ValidatorFacade;
 
 class JobProcess extends ScopeAwareModel
@@ -96,6 +99,16 @@ class JobProcess extends ScopeAwareModel
         );
     }
 
+    public static function getValidatorForChangeStatusPayload(array $payload): Validator
+    {
+        return ValidatorFacade::make(
+            $payload,
+            [
+                'job_process_status_id' => 'bail|required|integer|exists:job_process_statuses,id',
+            ]
+        );
+    }
+
     public function __construct(array $attributes = [])
     {
         $this->fillable(array_merge(static::$publicFields, static::$privateFields));
@@ -132,23 +145,30 @@ class JobProcess extends ScopeAwareModel
         return static::query()->where('id', '=', $id)->update(['deleted_at' => new \DateTime()]);
     }
 
-    public function user(): void
+    public static function isJobProcessFromUser(int $jobProcessId, int $userId): bool
     {
-        $this->hasOne(User::class);
+        $jobProcess = self::query()->findOrFail($jobProcessId)->first();
+
+        return ($jobProcess instanceof self && $jobProcess->user_id === $userId);
     }
 
-    public function jobProcessContacts(): void
+    public function user(): BelongsTo
     {
-        $this->hasMany(JobProcessContact::class);
+        return $this->belongsTo(User::class);
     }
 
-    public function JobProcessLog(): void
+    public function jobProcessContacts(): HasMany
     {
-        $this->hasMany(JobProcessLog::class);
+        return $this->hasMany(JobProcessContact::class);
     }
 
-    public function JobProcessStatus(): void
+    public function JobProcessLog(): HasMany
     {
-        $this->hasOne(JobProcessStatus::class);
+        return $this->hasMany(JobProcessLog::class);
+    }
+
+    public function JobProcessStatus(): HasOne
+    {
+        return $this->hasOne(JobProcessStatus::class);
     }
 }

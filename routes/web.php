@@ -46,3 +46,8 @@ $router->get('/api/v1/process/{jobProcessId}/log/{jobProcessLogId}', ['uses' => 
 $router->post('/api/v1/process/{jobProcessId}/status', ['uses' => '\App\Http\Controllers\JobProcessStatusController@changeJobProcessStatus', 'middleware' => 'auth:api']);
 
 //Contacts
+$router->get('/api/v1/process/{id}/contacts', ['uses' => '\App\Http\Controllers\JobProcessContactController@listJobProcessContacts', 'middleware' => 'auth:api']);
+$router->put('/api/v1/process/{id}/contacts', ['uses' => '\App\Http\Controllers\JobProcessContactController@createJobProcessContact', 'middleware' => 'auth:api']);
+$router->post('/api/v1/process/{id}/contacts', ['uses' => '\App\Http\Controllers\JobProcessContactController@editJobProcessContact', 'middleware' => 'auth:api']);
+$router->get('/api/v1/process/{jobProcessId}/contacts/{jobProcessContactId}', ['uses' => '\App\Http\Controllers\JobProcessContactController@viewJobProcessContact', 'middleware' => 'auth:api']);
+$router->delete('/api/v1/process/{id}/contacts/{jobProcessContactId}', ['uses' => '\App\Http\Controllers\JobProcessContactController@deleteJobProcessContact', 'middleware' => 'auth:api']);

@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Illuminate\Validation\Rule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Support\Facades\Validator as ValidatorFacade;
 
@@ -93,12 +94,14 @@ class JobProcessLog extends ScopeAwareModel
 
     public static function changeJobProcessStatus(int $jobProcessId, int $jobProcessStatusId): bool
     {
-        return is_array(self::createJobProcessLogEntry([
+        $created = self::createJobProcessLogEntry([
             'job_process_id' => $jobProcessId,
             'job_process_status_id' => $jobProcessStatusId,
             'title' => 'Status changed',
             'details' => 'Status changed',
-        ]));
+        ]);
+
+        return $created instanceof self && is_numeric($created->id);
     }
 
 }
