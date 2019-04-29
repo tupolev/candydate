@@ -7,11 +7,10 @@ use App\Exceptions\User\UserException;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 
-class UserController extends JsonController
+class UserController extends AuthAwareController
 {
     /* Public endpoints */
 
@@ -64,9 +63,6 @@ class UserController extends JsonController
                 HttpCodes::HTTP_UNPROCESSABLE_ENTITY
             );
         }
-        if ($userValidator->validated()['id'] !== Auth::user()->id) {
-            return static::buildUnauthorizedResponse();
-        }
         try {
             return static::buildResponse(
                 User::editUser($userValidator->validated())->toPublicList(),
@@ -80,13 +76,7 @@ class UserController extends JsonController
     public function changeUserPassword(Request $request): Response
     {
         try {
-            $requestBody = $request->json()->all();
-            if (empty($requestBody['id']) || $requestBody['id'] !== Auth::user()->id) {
-                return static::buildUnauthorizedResponse();
-            }
-            User::changeUserPassword($requestBody);
-
-            return static::buildResponse([], HttpCodes::HTTP_OK);
+            return static::buildResponse(User::changeUserPassword($request->json()->all()), HttpCodes::HTTP_OK);
         } catch (ChangeUserPasswordException $ex) {
             return static::buildResponse($ex->getMessage(), HttpCodes::HTTP_BAD_REQUEST);
         }

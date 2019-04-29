@@ -2,21 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\JobProcess;
 use App\JobProcessLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 
-class JobProcessStatusController extends JsonController
+class JobProcessStatusController extends AuthAwareController
 {
     public function changeJobProcessStatus(Request $request, int $id): Response
     {
-        if (!JobProcess::isJobProcessFromUser($id, Auth::user()->id)) {
-            return static::buildUnauthorizedResponse();
-        }
-
         $jobProcessStatusValidator = JobProcessLog::getValidatorForChangeStatusPayload($request->json()->all());
 
         if ($jobProcessStatusValidator->fails()) {

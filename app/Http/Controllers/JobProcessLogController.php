@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 
-class JobProcessLogController extends JsonController
+class JobProcessLogController extends AuthAwareController
 {
     public function getJobProcessLog(int $id): Response
     {

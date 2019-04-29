@@ -1,13 +1,12 @@
 <?php
 
 
-namespace App\Http\Controllers;
+namespace App\Traits\Http;
 
 
 use Illuminate\Http\Response;
-use Laravel\Lumen\Routing\Controller;
 
-class JsonController extends Controller
+trait JsonResponseTrait
 {
     protected static function buildResponse($content = [], int $status = 200): Response
     {

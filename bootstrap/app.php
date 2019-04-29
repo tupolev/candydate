@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CheckIsMyJobProcessMiddleware;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Contracts\Mail\Mailer;
 use Illuminate\Mail\MailServiceProvider;
@@ -64,14 +65,16 @@ $app->singleton(
 |
 */
 
-// $app->middleware([
-//     App\Http\Middleware\ExampleMiddleware::class
-// ]);
+$app->middleware([
+//    App\Http\Middleware\CheckIsMyJobProcessMiddleware::class
+]);
 
 $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
 //     'client' => \App\Http\Middleware\CheckClientCredentials::class,
 //     'client' => CheckClientCredentials::class,
+    'is_my_job_process' => App\Http\Middleware\CheckIsMyJobProcessMiddleware::class,
+    'is_my_user' => App\Http\Middleware\CheckIsMyUserMiddleware::class,
 ]);
 
 /*

@@ -176,6 +176,13 @@ class User extends ScopeAwareModel implements AuthenticatableContract, Authoriza
         }
     }
 
+    public static function canAccessResource(int $requestUserId, int $authUserId): bool
+    {
+        $user = self::query()->findOrFail($authUserId)->first();
+
+        return ($user instanceof self && $user->id === $requestUserId);
+    }
+
     public function role()
     {
         return $this->belongsTo(Role::class);

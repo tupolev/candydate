@@ -10,7 +10,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 
-class JobProcessController extends JsonController
+class JobProcessController extends AuthAwareController
 {
     public function listJobProcesses(Request $request): Response
     {
