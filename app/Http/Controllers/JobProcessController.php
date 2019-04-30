@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Exceptions\JobProcess\JobProcessCreateException;
 use App\Models\JobProcess;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response as HttpCodes;
 
 class JobProcessController extends JsonController
@@ -16,42 +16,31 @@ class JobProcessController extends JsonController
         return static::buildResponse(JobProcess::listByUserId($request->user()->id));
     }
 
-    public function viewJobProcess(int $id): Response
+    public function viewJobProcess(int $jobProcessId): Response
     {
-        if (!JobProcess::isJobProcessFromUser($id, Auth::user()->id)) {
-            return static::buildUnauthorizedResponse();
+        try {
+            return static::buildResponse(JobProcess::viewJobProcess($jobProcessId)->toPublicList());
+        } catch (ModelNotFoundException $ex) {
+            return static::buildResponse($ex->getMessage(), HttpCodes::HTTP_NOT_FOUND);
         }
-
-        return static::buildResponse(JobProcess::query()->findOrFail($id)->first()->toPublicList());
     }
 
     public function createJobProcess(Request $request): Response
     {
-        $jobProcessValidator = JobProcess::getValidatorForCreatePayload($request->json()->all());
-
-        if ($jobProcessValidator->fails()) {
-            return static::buildResponse(
-                ['errors' => $jobProcessValidator->errors()->getMessageBag()->toArray()],
-                HttpCodes::HTTP_UNPROCESSABLE_ENTITY
-            );
-        }
-
         try {
             return static::buildResponse(
-                JobProcess::createJobProcess($jobProcessValidator->validated())->toPublicList(),
+                JobProcess::createJobProcess($request->json()->all())->toPublicList(),
                 HttpCodes::HTTP_CREATED
             );
-        } catch (JobProcessCreateException $ex) {
-            return static::buildResponse($ex->getMessage(), HttpCodes::HTTP_BAD_REQUEST);
+        } catch (ValidationException $ex) {
+            return static::buildResponse(['errors' => $ex->validator->errors()->getMessageBag()->toArray()], HttpCodes::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Throwable $ex) {
+            return static::buildResponse($ex->getMessage(), HttpCodes::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
-    public function editJobProcess(int $id, Request $request): Response
+    public function editJobProcess(Request $request, int $jobProcessId): Response
     {
-        if (!JobProcess::isJobProcessFromUser($id, Auth::user()->id)) {
-            return static::buildUnauthorizedResponse();
-        }
-
         $jobProcessValidator = JobProcess::getValidatorForEditPayload($request->json()->all());
 
         if ($jobProcessValidator->fails()) {
@@ -63,20 +52,18 @@ class JobProcessController extends JsonController
 
         try {
             return static::buildResponse(
-                JobProcess::editJobProcess($id, $jobProcessValidator->validated())->toPublicList(),
+                JobProcess::editJobProcess($jobProcessId, $request->json()->all())->toPublicList(),
                 HttpCodes::HTTP_CREATED
             );
-        } catch (JobProcessCreateException $ex) {
+        } catch (ValidationException $ex) {
+            return static::buildResponse(['errors' => $ex->validator->errors()->getMessageBag()->toArray()], HttpCodes::HTTP_BAD_REQUEST);
+        } catch (\Throwable $ex) {
             return static::buildResponse($ex->getMessage(), HttpCodes::HTTP_BAD_REQUEST);
         }
     }
 
-    public function deleteJobProcess(int $id): Response
+    public function deleteJobProcess(int $jobProcessId): Response
     {
-        if (!JobProcess::isJobProcessFromUser($id, Auth::user()->id)) {
-            return static::buildUnauthorizedResponse();
-        }
-
-        return static::buildResponse(JobProcess::deleteProcess($id));
+        return static::buildResponse(JobProcess::deleteJobProcess($jobProcessId));
     }
 }

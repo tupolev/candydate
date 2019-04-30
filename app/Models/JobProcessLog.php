@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator as ValidatorFacade;
 use Illuminate\Validation\ValidationException;
 
@@ -55,7 +56,6 @@ class JobProcessLog extends ScopeAwareModel
         return ValidatorFacade::make(
             $payload,
             [
-                'job_process_id' => 'bail|required|integer|exists:job_processes,id',
                 'job_process_status_id' => 'bail|required|integer|exists:job_process_statuses,id',
                 'title' => 'bail|required|string',
                 'details' => 'bail|string',
@@ -73,6 +73,11 @@ class JobProcessLog extends ScopeAwareModel
         );
     }
 
+    /**
+     * @param int $jobProcessLogId
+     * @return array
+     * @throws ModelNotFoundException
+     */
     public static function listByJobProcessLogId(int $jobProcessLogId): array
     {
         return static::query()->findOrFail($jobProcessLogId)->toArray();
@@ -83,11 +88,20 @@ class JobProcessLog extends ScopeAwareModel
         return static::query()->where(['job_process_id' => $jobProcessId])->get()->toArray();
     }
 
-    public static function createJobProcessLogEntry(array $jobProcessLogData): self
+    /**
+     * @param array $jobProcessLogData
+     * @return JobProcessLog
+     * @throws ValidationException
+     * @throws \Throwable
+     */
+    public static function createJobProcessLogEntry(int $jobProcessId, array $jobProcessLogData): self
     {
+        self::getValidatorForCreatePayload($jobProcessLogData)->validate();
+
         $jobProcessLog = new self($jobProcessLogData);
+        $jobProcessLog->job_process_id = $jobProcessId;
         $jobProcessLog->jobProcess()->associate($jobProcessLog->job_process_id);
-        $jobProcessLog->save();
+        $jobProcessLog->saveOrFail();
 
         return $jobProcessLog;
     }

@@ -33,13 +33,13 @@ $router->get('/email-verification/{username}/{verification_hash}', [
 //JobProcess
 $router->get('/api/v1/process', ['uses' => '\App\Http\Controllers\JobProcessController@listJobProcesses', 'middleware' => 'auth:api']);
 $router->put('/api/v1/process', ['uses' => '\App\Http\Controllers\JobProcessController@createJobProcess', 'middleware' => 'auth:api']);
-$router->get('/api/v1/process/{id}', ['uses' => '\App\Http\Controllers\JobProcessController@viewJobProcess', 'middleware' => ['auth:api', 'is_owner_job_process']]);
-$router->post('/api/v1/process/{id}', ['uses' => '\App\Http\Controllers\JobProcessController@editJobProcess', 'middleware' => ['auth:api', 'is_owner_job_process']]);
-$router->delete('/api/v1/process/{id}', ['uses' => '\App\Http\Controllers\JobProcessController@deleteJobProcess', 'middleware' => ['auth:api', 'is_owner_job_process']]);
+$router->get('/api/v1/process/{jobProcessId}', ['uses' => '\App\Http\Controllers\JobProcessController@viewJobProcess', 'middleware' => ['auth:api', 'is_owner_job_process']]);
+$router->post('/api/v1/process/{jobProcessId}', ['uses' => '\App\Http\Controllers\JobProcessController@editJobProcess', 'middleware' => ['auth:api', 'is_owner_job_process']]);
+$router->delete('/api/v1/process/{jobProcessId}', ['uses' => '\App\Http\Controllers\JobProcessController@deleteJobProcess', 'middleware' => ['auth:api', 'is_owner_job_process']]);
 
 //JobProcessLog
-$router->get('/api/v1/process/{id}/log', ['uses' => '\App\Http\Controllers\JobProcessLogController@getJobProcessLog', 'middleware' => ['auth:api', 'is_owner_job_process']]);
-$router->put('/api/v1/process/{id}/log', ['uses' => '\App\Http\Controllers\JobProcessLogController@createJobProcessLogEntry', 'middleware' => ['auth:api', 'is_owner_job_process']]);
+$router->get('/api/v1/process/{jobProcessId}/log', ['uses' => '\App\Http\Controllers\JobProcessLogController@getJobProcessLog', 'middleware' => ['auth:api', 'is_owner_job_process']]);
+$router->put('/api/v1/process/{jobProcessId}/log', ['uses' => '\App\Http\Controllers\JobProcessLogController@createJobProcessLogEntry', 'middleware' => ['auth:api', 'is_owner_job_process']]);
 $router->get('/api/v1/process/{jobProcessId}/log/{jobProcessLogId}', ['uses' => '\App\Http\Controllers\JobProcessLogController@getJobProcessLogEntry', 'middleware' => ['auth:api', 'is_owner_job_process']]);
 
 //JobProcessStatus

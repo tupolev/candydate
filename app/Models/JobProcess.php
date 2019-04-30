@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator as ValidatorFacade;
+use Illuminate\Validation\ValidationException;
 
 class JobProcess extends ScopeAwareModel
 {
@@ -54,7 +57,6 @@ class JobProcess extends ScopeAwareModel
         return ValidatorFacade::make(
             $payload,
             [
-                'user_id' => 'bail|required|integer|exists:users,id',
                 'name' => 'bail|required|string',
                 'organization_name' => 'bail|required|string',
                 'organization_description' => 'bail|string',
@@ -119,29 +121,49 @@ class JobProcess extends ScopeAwareModel
         return static::query()->where(['user_id' => $userId])->get()->toArray();
     }
 
-    public static function createJobProcess(array $jobProcessDataFromRequest): self
+    public static function viewJobProcess(int $jobProcessId): self
     {
-        $jobProcess = new self($jobProcessDataFromRequest);
-        $jobProcess->date_start_offered = empty($jobProcessDataFromRequest['date_start_offered'])
-            ? null : date_create_from_format('Y-m-d', $jobProcessDataFromRequest['date_start_offered']);
-        $jobProcess->date_start_requested = $jobProcessDataFromRequest['date_start_requested']
-            ? null : date_create_from_format('Y-m-d', $jobProcessDataFromRequest['date_start_requested']);
-        $jobProcess->save();
+        return self::query()->findOrFail($jobProcessId)->first();
+    }
 
+    /**
+     * @param array $jobProcessData
+     * @return JobProcess
+     * @throws \Throwable
+     * @throws ValidationException
+     */
+    public static function createJobProcess(array $jobProcessData): self
+    {
+        self::getValidatorForCreatePayload($jobProcessData)->validate();
+
+        $jobProcess = new self($jobProcessData);
+        $jobProcess->user_id = Auth::user()->id;
+        $jobProcess->date_start_offered = empty($jobProcessData['date_start_offered'])
+            ? null : date_create_from_format('Y-m-d', $jobProcessData['date_start_offered']);
+        $jobProcess->date_start_requested = $jobProcessData['date_start_requested']
+            ? null : date_create_from_format('Y-m-d', $jobProcessData['date_start_requested']);
+        $jobProcess->saveOrFail();
 
         return $jobProcess;
     }
 
-    public static function editJobProcess(int $id, array $jobProcessDataFromRequest): self
+    /**
+     * @param int $jobProcessId
+     * @param array $jobProcessData
+     * @return JobProcess|Model
+     * @throws ValidationException
+     */
+    public static function editJobProcess(int $jobProcessId, array $jobProcessData): self
     {
-        self::query()->where('id', '=', $id)->update($jobProcessDataFromRequest);
+        self::getValidatorForEditPayload($jobProcessData)->validate();
+        self::query()->where('id', '=', $jobProcessId)->update($jobProcessData);
 
-        return self::query()->findOrFail($id);
+        return self::query()->findOrFail($jobProcessId);
     }
 
-    public static function deleteProcess(int $id): bool
+    public static function deleteJobProcess(int $jobProcessId): bool
     {
-        return static::query()->where('id', '=', $id)->update(['deleted_at' => new \DateTime()]);
+        return static::query()->where('id', '=', $jobProcessId)->update(['deleted_at' => new \DateTime()]);
     }
 
     public static function jobProcessBelongsToUser(int $jobProcessId, int $userId): bool
