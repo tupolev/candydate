@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\EmailVerifiedEvent;
 use App\Events\UserPasswordChangedEvent;
 use App\Notifications\NewUserRegisteredNotification;
 use Illuminate\Auth\Authenticatable;
@@ -13,6 +14,8 @@ use Illuminate\Validation\ValidationException;
 use Laravel\Lumen\Auth\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
+use Laravel\Passport\Client;
+use Laravel\Passport\ClientRepository;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 
@@ -142,7 +145,13 @@ class User extends ScopeAwareModel implements AuthenticatableContract, Authoriza
         $user->active = true;
         $user->setUpdatedAt(new \DateTime());
 
-        return $user->save();
+        $success = $user->save();
+
+        if ($success) {
+            Event::dispatch(new EmailVerifiedEvent($user));
+        }
+
+        return $success;
     }
 
     /**
@@ -231,5 +240,10 @@ class User extends ScopeAwareModel implements AuthenticatableContract, Authoriza
     private static function generateRandomHash(): string
     {
         return hash(self::HASH_ALGORITHM_SHA512, strftime(DATE_ATOM, time()));
+    }
+
+    public function createClientCredentials(): Client
+    {
+        return app(ClientRepository::class)->createPasswordGrantClient($this->id, $this->username, config('app.url'));
     }
 }

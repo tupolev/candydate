@@ -16,7 +16,10 @@ class UserController extends JsonController
     public function createUser(Request $request): Response
     {
         try {
-            return static::buildResponse(User::registerUser($request->json()->all())->toPublicList(), HttpCodes::HTTP_CREATED);
+            $user = User::registerUser($request->json()->all());
+            $client = $user->createClientCredentials();
+
+            return static::buildResponse(['user' => $user->toPublicList(), 'client' => $client->toArray()], HttpCodes::HTTP_CREATED);
         } catch (ValidationException $ex) {
             return static::buildResponse(
                 ['errors' => $ex->validator->errors()->getMessageBag()->toArray()],
