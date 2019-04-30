@@ -12,7 +12,7 @@
 |
 */
 //Home
-$router->get('/', static function () use ($router) {
+$router->get('/', function () use ($router) {
     return 'Candydate API v1';
 });
 
