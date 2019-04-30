@@ -111,7 +111,7 @@ Dusterio\LumenPassport\LumenPassport::routes($app->router, ['prefix' => 'api/v1/
 
 $app->router->group([
     'namespace' => 'App\Http\Controllers',
-], static function ($router) {
+], function ($router) {
     require __DIR__ . '/../routes/web.php';
 });
 
