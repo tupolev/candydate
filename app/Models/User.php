@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Events\EmailVerifiedEvent;
 use App\Events\UserPasswordChangedEvent;
 use App\Notifications\NewUserRegisteredNotification;
 use Illuminate\Auth\Authenticatable;
@@ -145,13 +144,7 @@ class User extends ScopeAwareModel implements AuthenticatableContract, Authoriza
         $user->active = true;
         $user->setUpdatedAt(new \DateTime());
 
-        $success = $user->save();
-
-        if ($success) {
-            Event::dispatch(new EmailVerifiedEvent($user));
-        }
-
-        return $success;
+        return $user->save();
     }
 
     /**
