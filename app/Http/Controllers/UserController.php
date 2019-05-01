@@ -18,8 +18,17 @@ class UserController extends JsonController
         try {
             $user = User::registerUser($request->json()->all());
             $client = $user->createClientCredentials();
-
-            return static::buildResponse(['user' => $user->toPublicList(), 'client' => $client->toArray()], HttpCodes::HTTP_CREATED);
+            $clientData = [
+                'name' => $client->name,
+                'client_id' => $client->id,
+                'client_secret' => $client->secret,
+                'redirect' => $client->redirect,
+                'password_client' => $client->password_client,
+                'personal_access_client' => $client->personal_access_client,
+                'revoked' => $client->revoked,
+                'created_at' => $client->created_at,
+            ];
+            return static::buildResponse(['user' => $user->toPublicList(), 'client' => $clientData], HttpCodes::HTTP_CREATED);
         } catch (ValidationException $ex) {
             return static::buildResponse(
                 ['errors' => $ex->validator->errors()->getMessageBag()->toArray()],
