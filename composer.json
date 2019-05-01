@@ -41,12 +41,12 @@
     },
     "scripts": {
         "post-root-package-install": [
-            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+            "vendor/bin/heroku-php-nginx public/"
         ],
         "post-install-cmd": [
             "chmod a+x heroku/setup_oauth_keys.sh",
-            "./heroku/setup_oauth_keys.sh",
-            "vendor/bin/heroku-php-nginx public/"
+            "./heroku/setup_oauth_keys.sh"
         ]
     },
     "config": {
