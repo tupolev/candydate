@@ -39,7 +39,7 @@ class JobProcessStatusSeeder extends Seeder
             'created_at' => new \DateTime(),
         ]);
         DB::table(JobProcessStatus::TABLE_NAME)->insert([
-            'id' => 5,
+            'id' => 6,
             'name' => 'archived',
             'created_at' => new \DateTime(),
         ]);
