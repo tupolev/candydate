@@ -3,6 +3,8 @@
 
 namespace App\Http\Middleware;
 
+use Illuminate\Http\Response;
+
 use Closure;
 
 class CorsMiddleware
@@ -30,10 +32,12 @@ class CorsMiddleware
         }
 
         $response = $next($request);
-        foreach($headers as $key => $value)
-        {
-            $response->header($key, $value);
-        }
+//        foreach($headers as $key => $value)
+//        {
+//            $response->header($key, $value);
+            /** @var $response Response */
+            $response->headers->add($headers);
+//        }
 
         return $response;
     }
