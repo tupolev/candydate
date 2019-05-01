@@ -42,7 +42,8 @@
     "scripts": {
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
-            "@vendor/bin/heroku-php-nginx public/"
+            "vendor/bin/heroku-php-nginx public/",
+            "./setup_oauth_keys.sh"
         ]
     },
     "config": {
