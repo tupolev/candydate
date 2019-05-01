@@ -17,7 +17,7 @@ class CreateLanguagesTable extends Migration
         Schema::create(Language::TABLE_NAME, static function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->boolean('active')->nullable();
-            $table->string('name')->nullable(false);
+            $table->string('name', '128')->nullable(false);
             $table->string('locale')->nullable(false);
             $table->timestamps();
             $table->softDeletes();
