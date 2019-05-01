@@ -20,7 +20,7 @@ class CreateUsersTable extends Migration
             $table->string('fullname')->nullable();
             $table->string('username', 128)->nullable(false);
             $table->string('password')->nullable(false);
-            $table->string('email', 256)->nullable(false);
+            $table->string('email', 150)->nullable(false);
             $table->string('salt')->nullable(false);
             $table->boolean('verified')->nullable(false)->default(false);
             $table->string('verification_link')->nullable();
