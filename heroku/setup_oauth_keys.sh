@@ -1,7 +1,7 @@
 #!/bin/bash
 
 mkdir /bin
-export VENDORDIR="/"
+export VENDORDIR="bin"
 
 echo "Downloading and installing pip"
 
