@@ -16,17 +16,17 @@ class RoleSeeder extends Seeder
         DB::table(Role::TABLE_NAME)->insert([
             'id' => 1,
             'name' => Role::ROLE_SUPER_ADMIN,
-            'created_at' => DateTime::createFromFormat('Y-m-d H:i:s', 'now'),
+            'created_at' => new \DateTime(),
         ]);
         DB::table(Role::TABLE_NAME)->insert([
             'id' => 2,
             'name' => Role::ROLE_USER,
-            'created_at' => DateTime::createFromFormat('Y-m-d H:i:s', 'now'),
+            'created_at' => new \DateTime(),
         ]);
         DB::table(Role::TABLE_NAME)->insert([
             'id' => 3,
             'name' => Role::ROLE_ADMIN,
-            'created_at' => DateTime::createFromFormat('Y-m-d H:i:s', 'now'),
+            'created_at' => new \DateTime(),
         ]);
     }
 }
