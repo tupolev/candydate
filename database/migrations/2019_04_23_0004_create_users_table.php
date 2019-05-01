@@ -18,9 +18,9 @@ class CreateUsersTable extends Migration
             $table->bigIncrements('id');
             $table->boolean('active')->nullable(false)->default(true);
             $table->string('fullname')->nullable();
-            $table->string('username')->nullable(false);
+            $table->string('username', 128)->nullable(false);
             $table->string('password')->nullable(false);
-            $table->string('email')->nullable(false);
+            $table->string('email', 256)->nullable(false);
             $table->string('salt')->nullable(false);
             $table->boolean('verified')->nullable(false)->default(false);
             $table->string('verification_link')->nullable();
