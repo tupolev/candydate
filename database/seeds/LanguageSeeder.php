@@ -18,21 +18,21 @@ class LanguageSeeder extends Seeder
             'name' => 'English',
             'locale' => 'en',
             'active' => true,
-            'created_at' => DateTime::createFromFormat('Y-m-d H:i:s', 'now'),
+            'created_at' => new \DateTime(),
         ]);
         DB::table(Language::TABLE_NAME)->insert([
             'id' => 2,
             'name' => 'Deutsch',
             'locale' => 'de',
             'active' => true,
-            'created_at' => DateTime::createFromFormat('Y-m-d H:i:s', 'now'),
+            'created_at' => new \DateTime(),
         ]);
         DB::table(Language::TABLE_NAME)->insert([
             'id' => 3,
             'name' => 'Español',
             'locale' => 'es',
             'active' => true,
-            'created_at' => DateTime::createFromFormat('Y-m-d H:i:s', 'now'),
+            'created_at' => new \DateTime(),
         ]);
     }
 }
