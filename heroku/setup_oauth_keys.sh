@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export $VENDORDIR=/vendor
+export VENDORDIR="/vendor"
 
 echo "Downloading and installing pip"
 
